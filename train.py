@@ -1,104 +1,142 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
 import random
-import collections
-from simple_custom_taxi_env import SimpleTaxiEnv
+import numpy as np
+from collections import deque
+import matplotlib.pyplot as plt
+from tr_simple_custom_taxi_env import SimpleTaxiEnv
+from IPython.display import clear_output
 
-# 設定超參數
-EPISODES = 5000
-LEARNING_RATE = 0.001
-GAMMA = 0.99  # 折扣因子
-EPSILON = 1.0
-EPSILON_DECAY = 0.995
-EPSILON_MIN = 0.01
-BATCH_SIZE = 64
-MEMORY_SIZE = 10000
-TARGET_UPDATE = 100  # 更新 target network 頻率
-
-# 環境 & 模型設定
-env = SimpleTaxiEnv(grid_size=5, fuel_limit=5000)
-state_size = len(env.get_state())
-action_size = 6
-
-# DQN 架構
 class DQN(nn.Module):
-    def __init__(self, state_size, action_size):
+    """輕量版 DQN"""
+    def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_size, 128)
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, action_size)
+        self.fc1 = nn.Linear(state_dim, 128)  # 減少神經元數量
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        return self.fc3(x)  # 輸出 Q 值
+        return self.fc3(x)  # 輸出 6 個 Q-values
 
-# 初始化 DQN
-policy_net = DQN(state_size, action_size)
-target_net = DQN(state_size, action_size)
-target_net.load_state_dict(policy_net.state_dict())  # 初始化 target network
+# 🎯 訓練超參數（輕量版）
+GAMMA = 0.99          # 折扣因子
+LR = 5e-4             # 學習率（較高，加速收斂）
+EPSILON_START = 1.0   # 初始探索率
+EPSILON_END = 0.15    # 最小探索率
+EPSILON_DECAY = 0.9997 # 探索率衰減
+MEMORY_SIZE = 10000    # 記憶庫大小（減少佔用記憶體）
+BATCH_SIZE = 64       # 訓練批次大小（減少顯存需求）
+TARGET_UPDATE = 10    # 每 10 個 episodes 更新目標網路
+EPISODES = 15000       # 訓練回合數（減少訓練時間）
+MAX_STEPS_PER_EPISODE = 10000  # 🚨 1000 步後自動結束
+REPLAY_START = 1000   # 記憶庫最少要有 1000 條資料才能訓練
+
+# 初始化環境
+env = SimpleTaxiEnv()
+state_dim = 14
+action_dim = 6  
+
+# 創建 DQN & 目標網路
+policy_net = DQN(state_dim, action_dim).float()
+target_net = DQN(state_dim, action_dim).float()
+target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
-optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
-loss_fn = nn.MSELoss()
+optimizer = optim.Adam(policy_net.parameters(), lr=LR)  
+memory = deque(maxlen=MEMORY_SIZE)
+epsilon = EPSILON_START
 
-# 經驗回放記憶體
-memory = collections.deque(maxlen=MEMORY_SIZE)
+def store_experience(state, action, reward, next_state, done):
+    memory.append((state, action, reward, next_state, done))
 
-def select_action(state, epsilon):
-    """ ϵ-greedy 探索策略 """
-    if np.random.rand() < epsilon:
-        return np.random.choice(range(action_size))  # 隨機探索
+def select_action(state):
+    global epsilon
+    if random.random() < epsilon:
+        return random.randint(0, action_dim - 1)
     else:
-        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         with torch.no_grad():
-            return torch.argmax(policy_net(state_tensor)).item()  # 選擇 Q 值最大動作
+            state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+            return torch.argmax(policy_net(state_tensor)).item()
 
-# 訓練 DQN
+def train():
+    if len(memory) < REPLAY_START:
+        return
+
+    batch = random.sample(memory, BATCH_SIZE)
+    states, actions, rewards, next_states, dones = zip(*batch)
+
+    states = torch.tensor(states, dtype=torch.float32)
+    actions = torch.tensor(actions, dtype=torch.int64).unsqueeze(1)
+    rewards = torch.tensor(rewards, dtype=torch.float32)
+    next_states = torch.tensor(next_states, dtype=torch.float32)
+    dones = torch.tensor(dones, dtype=torch.float32)
+
+    q_values = policy_net(states).gather(1, actions).squeeze()
+    next_q_values = target_net(next_states).max(1)[0].detach()
+    target_q_values = rewards + GAMMA * next_q_values * (1 - dones)
+
+    loss = nn.MSELoss()(q_values, target_q_values)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+# 🎮 訓練過程
+reward_history = []
+
 for episode in range(EPISODES):
-    state, _ = env.reset()
-    done = False
-    total_reward = 0
+    try:
+        grid_size = random.randint(5, 10)  
+        state, _ = env.reset(fixed_grid_size=grid_size)
 
-    while not done:
-        action = select_action(state, EPSILON)
-        next_state, reward, done, _ = env.step(action)
+        if episode == 0:
+            print(f"✅ 第一回合開始，地圖大小: {grid_size}x{grid_size}")
+            env.render_env()  
 
-        memory.append((state, action, reward, next_state, done))
+        total_reward = 0
+        step_count = 0
 
-        if len(memory) > BATCH_SIZE:
-            batch = random.sample(memory, BATCH_SIZE)
-            states, actions, rewards, next_states, dones = zip(*batch)
+        for step in range(MAX_STEPS_PER_EPISODE):  # 🚨 限制步數為 200
+            action = select_action(state)
+            next_state, reward, done, _ = env.step(action)
+            store_experience(state, action, reward, next_state, done)
 
-            states = torch.tensor(states, dtype=torch.float32)
-            actions = torch.tensor(actions, dtype=torch.long)
-            rewards = torch.tensor(rewards, dtype=torch.float32)
-            next_states = torch.tensor(next_states, dtype=torch.float32)
-            dones = torch.tensor(dones, dtype=torch.float32)
+            state = next_state
+            total_reward += reward
+            step_count += 1
 
-            q_values = policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
-            next_q_values = target_net(next_states).max(1)[0].detach()
-            target_q_values = rewards + (1 - dones) * GAMMA * next_q_values
+            if done:
+                break
 
-            loss = loss_fn(q_values, target_q_values)
+        # 🚨 如果 200 步還沒結束，強制結束
+        if step_count >= MAX_STEPS_PER_EPISODE:
+            done = True
+            print(f"⚠️ Episode {episode} 超過 {MAX_STEPS_PER_EPISODE} 步，自動結束")
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        train()  
+        reward_history.append(total_reward)
 
-        state = next_state
-        total_reward += reward
+        if episode % TARGET_UPDATE == 0:
+            target_net.load_state_dict(policy_net.state_dict())
 
-    EPSILON = max(EPSILON * EPSILON_DECAY, EPSILON_MIN)
+        epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
 
-    if episode % TARGET_UPDATE == 0:
-        target_net.load_state_dict(policy_net.state_dict())  # 更新 target network
+        if episode % 100 == 0:
+            print(f"📊 Episode {episode}, Reward: {total_reward}, Grid Size: {grid_size}, Epsilon: {epsilon:.3f}")
+            torch.save(policy_net.state_dict(), "dqn_taxi_light2.pth")
+    except Exception as e:
+        print(f"❌ 發生錯誤: {e}")
+        break  
 
-    if episode % 100 == 0:
-        print(f"Episode {episode}, Total Reward: {total_reward}")
+# 儲存 DQN 模型
+torch.save(policy_net.state_dict(), "dqn_taxi_light2.pth")
+print("DQN 訓練完成，輕量化模型已儲存！")
 
-# 儲存 DQN model
-torch.save(policy_net, "dqn_model.pth")
-print("DQN 訓練完成，模型已儲存！")
+# 📊 繪製獎勵趨勢
+plt.plot(reward_history)
+plt.xlabel("Episodes")
+plt.ylabel("Total Reward")
+plt.title("DQN Lightweight Training Progress")
+plt.show()
