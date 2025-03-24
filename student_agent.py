@@ -7,10 +7,10 @@ class DQN(nn.Module):
     """輕量版 DQN，與訓練時相同的網路結構"""
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
+        self.fc1 = nn.Linear(state_dim, 64)
+        self.fc2 = nn.Linear(64, 128)
         # 修改 fc3 輸入維度為 64 以符合 fc2 輸出
-        self.fc3 = nn.Linear(64, action_dim)
+        self.fc3 = nn.Linear(128, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
