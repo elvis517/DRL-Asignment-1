@@ -16,8 +16,8 @@ class DQN(nn.Module):
     """輕量版 DQN"""
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 128)  # 減少神經元數量
-        self.fc2 = nn.Linear(128,  64)  # 減少神經元數量    
+        self.fc1 = nn.Linear(state_dim, 64)  # 減少神經元數量
+        self.fc2 = nn.Linear(64,  64)  # 減少神經元數量    
         self.fc3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
@@ -30,7 +30,7 @@ GAMMA = 0.99          # 折扣因子
 LR = 5e-4             # 學習率（較高，加速收斂）
 EPSILON_START = 1.0   # 初始探索率
 EPSILON_END = 0.15    # 最小探索率
-EPSILON_DECAY = 0.9997 # 探索率衰減
+EPSILON_DECAY = 0.9998 # 探索率衰減
 MEMORY_SIZE = 7500    # 記憶庫大小（減少佔用記憶體）
 BATCH_SIZE = 32       # 訓練批次大小（減少顯存需求）
 TARGET_UPDATE = 10    # 每 10 個 episodes 更新目標網路
@@ -49,7 +49,7 @@ target_net = DQN(state_dim, action_dim).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
-optimizer = optim.Adam(policy_net.parameters(), lr=LR)  
+optimizer = optim.SGD(policy_net.parameters(), lr=LR)  
 memory = deque(maxlen=MEMORY_SIZE)
 epsilon = EPSILON_START
 
@@ -130,13 +130,13 @@ for episode in range(EPISODES):
 
         if episode % 100 == 0:
             print(f"📊 Episode {episode}, Reward: {total_reward}, Grid Size: {grid_size}, Epsilon: {epsilon:.3f}")
-            torch.save(policy_net.state_dict(), "dqn_taxi_light128.pth")
+            torch.save(policy_net.state_dict(), "dqn_taxi_light64.pth")
     except Exception as e:
         print(f"❌ 發生錯誤: {e}")
         break  
 
 # 儲存 DQN 模型
-torch.save(policy_net.state_dict(), "dqn_taxi_light128.pth")
+torch.save(policy_net.state_dict(), "dqn_taxi_light64.pth")
 print("DQN 訓練完成，輕量化模型已儲存！")
 
 # 📊 繪製獎勵趨勢
