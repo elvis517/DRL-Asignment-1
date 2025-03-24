@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-# import torch.nn.functional as F
+import torch.nn.functional as F
 import numpy as np
 
 # class DQN(nn.Module):
@@ -66,6 +66,7 @@ def get_action(obs):
     接收環境回傳的狀態 obs（假設為可離散化的 tuple），
     並返回一個動作（0~5）。
     """
+
     key = str(obs)
     if key in q_table:
         # 若該狀態在 Q-table 中，選取 Q 值最高的動作
