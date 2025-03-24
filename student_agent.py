@@ -52,7 +52,7 @@ def get_action(obs):
 
 
 # import numpy as np
-# import pickle
+import pickle
 # import random
 
 # # 載入已訓練好的 Q-table
