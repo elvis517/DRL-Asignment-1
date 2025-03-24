@@ -6,6 +6,7 @@ import gym
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from tr_simple_custom_taxi_env import SimpleTaxiEnv as env
 # def get_action(obs):
     
 #     # TODO: Train your own agent
@@ -23,7 +24,16 @@ import torch.optim as optim
 # import random
 
 # 載入 DQN 模型
+import numpy as np
+import random
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# 請確認模型檔案路徑正確
 MODEL_PATH = "dqn_taxi_light14.pth"
+state_dim = 14   # 根據你的 get_state() 回傳的維度
+action_dim = 6   # 可用動作數量
 
 class DQNAgent:
     def __init__(self, state_dim, action_dim, model_path):
@@ -36,16 +46,16 @@ class DQNAgent:
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.eval()
 
-        self.epsilon = 0.005  # 測試時探索率較低
+        self.epsilon = 0.005  # 測試時較低的探索率
 
     def build_model(self):
         """建立與訓練時相同的 DQN 模型"""
-        return torch.nn.Sequential(
-            torch.nn.Linear(self.state_dim, 128),
-            torch.nn.ReLU(),
-            torch.nn.Linear(128, 64),
-            torch.nn.ReLU(),
-            torch.nn.Linear(64, self.action_dim)
+        return nn.Sequential(
+            nn.Linear(self.state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, self.action_dim)
         )
 
     def select_action(self, obs):
@@ -55,20 +65,38 @@ class DQNAgent:
         else:
             with torch.no_grad():
                 obs_tensor = torch.tensor(obs, dtype=torch.float32).unsqueeze(0).to(self.device)
-                return torch.argmax(self.model(obs_tensor)).item()  # 選擇 Q 值最高的行動
+                return torch.argmax(self.model(obs_tensor)).item()  # 選擇 Q 值最高的動作
 
-# 初始化代理（根據環境狀態空間大小調整 state_dim）
-state_dim = 14  # 這應該對應於 `SimpleTaxiEnv` 的 `get_state()` 維度
-action_dim = 6  # 6 個可用行動（0,1,2,3,4,5）
+# 假設你已經有環境物件 env，且 env 有你定義的 get_state() 方法
+# 例如：
+# from your_custom_taxi_env import SimpleTaxiEnv
+# env = SimpleTaxiEnv()
+# env.reset()  之類的初始化動作
+
+# 建立 agent 實例
 agent = DQNAgent(state_dim, action_dim, MODEL_PATH)
 
-def get_action(obs):
+def get_action():
     """
-    選擇最佳行動，如果 obs 格式錯誤或模型無法處理，則隨機選擇動作。
+    從 env 中取得當前狀態 (使用你定義的 get_state() 方法)，
+    並利用 agent 選擇最佳動作。
     """
     try:
-        return agent.select_action(obs)
+        # 直接透過你自定義的 get_state() 取得狀態
+        state = env.get_state()
+        # 將狀態轉換成 NumPy 陣列，確保格式正確
+        state = np.array(state, dtype=np.float32)
+        # 檢查狀態維度是否正確 (應為 14)
+        if state.shape[0] != state_dim:
+            print(f"⚠️ state 維度錯誤: 期望 {state_dim}, 但收到 {state.shape[0]}，使用全零向量補位")
+            state = np.zeros(state_dim, dtype=np.float32)
+        
+        # 使用 agent 選擇動作
+        action = agent.select_action(state)
+        return action
+
     except Exception as e:
-        # print(f"⚠️ 選擇動作時發生錯誤: {e}, 退回隨機行動")
-        return random.choice([0, 1, 2, 3, 4, 5])  # 退回隨機選擇建
+        print(f"⚠️ 選擇動作時發生錯誤: {e}")
+        # 發生錯誤時返回隨機動作
+        return random.choice([0, 1, 2, 3, 4, 5])
     
