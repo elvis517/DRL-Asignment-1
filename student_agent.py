@@ -71,6 +71,6 @@ def get_action(obs):
 #     if key in q_table:
 #         # 若該狀態在 Q-table 中，選取 Q 值最高的動作
 #         return int(np.argmax(q_table[key]))
-#     else:
-        # 若該狀態不在 Q-table 中，則隨機選一個動作
-        return random.randint(0, action_dim - 1)
+# #     else:
+#         # 若該狀態不在 Q-table 中，則隨機選一個動作
+#         return random.randint(0, action_dim - 1)
