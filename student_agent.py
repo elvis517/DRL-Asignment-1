@@ -8,8 +8,8 @@ class DQN(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(state_dim, 128)  # 減少神經元數量
-        self.fc2 = nn.Linear(128,  128)  # 減少神經元數量    
-        self.fc3 = nn.Linear(128, action_dim)
+        self.fc2 = nn.Linear(128,  64)  # 減少神經元數量    
+        self.fc3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -24,7 +24,7 @@ action_dim = 6
 
 # 載入訓練後的模型參數，檔名與路徑請依實際情況調整
 policy_net = DQN(state_dim, action_dim)
-policy_net.load_state_dict(torch.load("dqn_taxi_light128.pth"))
+policy_net.load_state_dict(torch.load("dqn_taxi_light_real.pth"))
 policy_net.eval()
 
 def get_action(obs):
@@ -38,3 +38,40 @@ def get_action(obs):
         q_values = policy_net(obs_tensor)
     action = int(torch.argmax(q_values, dim=1).item())
     return action
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# import numpy as np
+# import pickle
+# import random
+
+# # 載入已訓練好的 Q-table
+# with open("q_table.pkl", "rb") as f:
+#     q_table = pickle.load(f)
+
+# action_dim = 6  # 動作數量：0 ~ 5
+
+# def get_action(obs):
+#     """
+#     接收環境回傳的狀態 obs（假設為可離散化的 tuple），
+#     並返回一個動作（0~5）。
+#     """
+#     key = str(obs)
+#     if key in q_table:
+#         # 若該狀態在 Q-table 中，選取 Q 值最高的動作
+#         return int(np.argmax(q_table[key]))
+#     else:
+#         # 若該狀態不在 Q-table 中，則隨機選一個動作
+#         return random.randint(0, action_dim - 1)
