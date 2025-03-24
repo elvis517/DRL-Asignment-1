@@ -143,14 +143,14 @@ class SimpleTaxiEnv():
             if self.taxi_pos == self.passenger_loc:
                 self.passenger_picked_up = True
                 self.passenger_loc = self.taxi_pos  
-                reward += 50  # 成功接乘客獎勵 +2000
+                reward += 500  # 成功接乘客獎勵 +2000
             else:
                 reward -= 800  # 錯誤 PICKUP 懲罰 -50
 
         elif action == 5:  # DROPOFF
             if self.passenger_picked_up:
                 if self.taxi_pos == self.destination:
-                    reward += 20  # 成功送達乘客獎勵 +2000
+                    reward += 2000  # 成功送達乘客獎勵 +2000
                     return self.get_state(), reward, True, {}  # 遊戲結束
                 else:
                     reward -= 800  # 錯誤 DROPOFF 懲罰 -50
