@@ -49,7 +49,7 @@ target_net = DQN(state_dim, action_dim).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
-optimizer = optim.AdamW(policy_net.parameters(), lr=LR)  
+optimizer = optim.Adam(policy_net.parameters(), lr=LR)  
 memory = deque(maxlen=MEMORY_SIZE)
 epsilon = EPSILON_START
 
