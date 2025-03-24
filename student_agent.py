@@ -17,7 +17,7 @@ class DQN(nn.Module):
         return self.fc3(x)
 
 # 根據訓練時設定，state_dim 為 14, action_dim 為 6
-state_dim = 16
+state_dim = 16+0
 action_dim = 6
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
