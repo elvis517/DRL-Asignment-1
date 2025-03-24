@@ -7,9 +7,9 @@ class DQN(nn.Module):
     """輕量版 DQN，與訓練時相同的網路結構"""
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 64)  # 減少神經元數量
-        self.fc2 = nn.Linear(64,  128)  # 減少神經元數量    
-        self.fc3 = nn.Linear(128, action_dim)
+        self.fc1 = nn.Linear(state_dim,128 )  # 減少神經元數量
+        self.fc2 = nn.Linear(128,  64)  # 減少神經元數量    
+        self.fc3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -17,7 +17,7 @@ class DQN(nn.Module):
         return self.fc3(x)
 
 # 根據訓練時設定，state_dim 為 14, action_dim 為 6
-state_dim = 18-2
+state_dim = 16
 action_dim = 6
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
