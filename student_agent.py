@@ -21,11 +21,11 @@ class DQN(nn.Module):
 state_dim = 16
 action_dim = 6
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 載入訓練後的模型參數，檔名與路徑請依實際情況調整
-policy_net = DQN(state_dim, action_dim).to(device)
-policy_net.load_state_dict(torch.load("dqn_taxi_light2.pth", map_location=device))
+policy_net = DQN(state_dim, action_dim)
+policy_net.load_state_dict(torch.load("dqn_taxi_light2.pth"))
 policy_net.eval()
 
 def get_action(obs):
@@ -34,7 +34,7 @@ def get_action(obs):
     """
     # 確保 obs 為 numpy float32 向量
     obs = np.array(obs, dtype=np.float32)
-    obs_tensor = torch.tensor(obs, device=device).unsqueeze(0)  # shape: (1, 14)
+    obs_tensor = torch.tensor(obs).unsqueeze(0)  # shape: (1, 14)
     with torch.no_grad():
         q_values = policy_net(obs_tensor)
     action = int(torch.argmax(q_values, dim=1).item())
