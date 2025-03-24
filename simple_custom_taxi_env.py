@@ -30,6 +30,7 @@ class SimpleTaxiEnv():
         self.destination = None
 
     def reset(self):
+        #
         """Reset the environment, ensuring Taxi, passenger, and destination are not overlapping obstacles"""
         self.current_fuel = self.fuel_limit
         self.passenger_picked_up = False
