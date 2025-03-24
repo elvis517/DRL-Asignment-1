@@ -7,8 +7,8 @@ class DQN(nn.Module):
     """輕量版 DQN，與訓練時相同的網路結構"""
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 64)  # 減少神經元數量
-        self.fc2 = nn.Linear(64,  128)  # 減少神經元數量    
+        self.fc1 = nn.Linear(state_dim, 128)  # 減少神經元數量
+        self.fc2 = nn.Linear(128,  128)  # 減少神經元數量    
         self.fc3 = nn.Linear(128, action_dim)
 
     def forward(self, x):
