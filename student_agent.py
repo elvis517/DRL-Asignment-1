@@ -60,7 +60,7 @@ import pickle
 import random
 
 # 載入已訓練好的 Q-table
-with open("q_table.pkl", "rb") as f:
+with open("q_table_old.pkl", "rb") as f:
     q_table = pickle.load(f)
 
 action_dim = 6  # 動作數量：0 ~ 5
