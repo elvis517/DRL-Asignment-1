@@ -17,12 +17,12 @@ class DQN(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(state_dim, 64)  # 減少神經元數量
-        self.fc2 = nn.Linear(64,  64)  # 減少神經元數量    
-        self.fc3 = nn.Linear(64, action_dim)
+        self.fc2 = nn.Linear(64,  128)  # 減少神經元數量    
+        self.fc3 = nn.Linear(128, action_dim)
 
     def forward(self, x):
-        x = torch.sigmoid(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
         return self.fc3(x)  # 輸出 6 個 Q-values
 
 # 🎯 訓練超參數（輕量版）
@@ -49,7 +49,7 @@ target_net = DQN(state_dim, action_dim).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
-optimizer = optim.SGD(policy_net.parameters(), lr=LR)  
+optimizer = optim.AdamW(policy_net.parameters(), lr=LR)  
 memory = deque(maxlen=MEMORY_SIZE)
 epsilon = EPSILON_START
 

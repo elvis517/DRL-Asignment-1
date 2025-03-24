@@ -7,8 +7,8 @@ class DQN(nn.Module):
     """輕量版 DQN，與訓練時相同的網路結構"""
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 64)
-        self.fc2 = nn.Linear(64, 64)
+        self.fc1 = nn.Linear(state_dim, 128)
+        self.fc2 = nn.Linear(128, 64)
         # 修改 fc3 輸入維度為 64 以符合 fc2 輸出
         self.fc3 = nn.Linear(64, action_dim)
 
@@ -25,7 +25,7 @@ action_dim = 6
 
 # 載入訓練後的模型參數，檔名與路徑請依實際情況調整
 policy_net = DQN(state_dim, action_dim)
-policy_net.load_state_dict(torch.load("dqn_taxi_light128.pth"))
+policy_net.load_state_dict(torch.load("dqn_taxi_light2.pth"))
 policy_net.eval()
 
 def get_action(obs):
