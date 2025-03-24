@@ -150,7 +150,7 @@ class SimpleTaxiEnv():
         elif action == 5:  # DROPOFF
             if self.passenger_picked_up:
                 if self.taxi_pos == self.destination:
-                    reward += 4000  # 成功送達乘客獎勵 +2000
+                    reward += 2000  # 成功送達乘客獎勵 +2000
                     return self.get_state(), reward, True, {}  # 遊戲結束
                 else:
                     reward -= 800  # 錯誤 DROPOFF 懲罰 -50
@@ -170,47 +170,3 @@ class SimpleTaxiEnv():
 
 
         return self.get_state(), reward, False, {}
-def run_agent(agent_file, env_config, render=False):
-    spec = importlib.util.spec_from_file_location("student_agent", agent_file)
-    student_agent = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(student_agent)
-
-    env = SimpleTaxiEnv(**env_config)
-    obs, _ = env.reset()
-    total_reward = 0
-    done = False
-    step_count = 0
-    stations = [(0, 0), (0, 4), (4, 0), (4,4)]
-    
-    taxi_row, taxi_col, _,_,_,_,_,_,_,_,obstacle_north, obstacle_south, obstacle_east, obstacle_west, passenger_look, destination_look = obs
-
-    if render:
-        env.render_env((taxi_row, taxi_col),
-                       action=None, step=step_count, fuel=env.current_fuel)
-        time.sleep(0.5)
-    while not done:
-        
-        
-        action = student_agent.get_action(obs)
-
-        obs, reward, done, _ = env.step(action)
-        print('obs=',obs)
-        total_reward += reward
-        step_count += 1
-
-        taxi_row, taxi_col, _,_,_,_,_,_,_,_,obstacle_north, obstacle_south, obstacle_east, obstacle_west, passenger_look,destination_look = obs
-
-        if render:
-            env.render_env((taxi_row, taxi_col),
-                           action=action, step=step_count, fuel=env.current_fuel)
-
-    print(f"Agent Finished in {step_count} steps, Score: {total_reward}")
-    return total_reward
-
-if __name__ == "__main__":
-    env_config = {
-        "fuel_limit": 5000
-    }
-    
-    agent_score = run_agent("student_agent.py", env_config, render=True)
-    print(f"Final Score: {agent_score}")

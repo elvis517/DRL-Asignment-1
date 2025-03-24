@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import pickle
 
 # 超參數設定
-ALPHA = 0.1             # 學習率
+ALPHA = 0.01             # 學習率
 GAMMA = 0.99            # 折扣因子
 EPSILON_START = 1.0     # 初始探索率
-EPSILON_MIN = 0.05      # 最小探索率
+EPSILON_MIN = 0.1      # 最小探索率
 EPSILON_DECAY = 0.9997  # 探索率衰減
 EPISODES = 10000        # 訓練回合數
 MAX_STEPS = 10000       # 每個回合最大步數
