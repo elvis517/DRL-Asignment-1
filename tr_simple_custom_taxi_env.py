@@ -129,12 +129,11 @@ class SimpleTaxiEnv():
 
         # 檢查是否撞到障礙物或超出邊界
         if (next_row, next_col) in self.obstacles or not (0 <= next_row < self.grid_size and 0 <= next_col < self.grid_size):
-            reward -= 50  # 碰撞懲罰 -50
+            reward -= 1000  # 碰撞懲罰 -50
         else:
             self.taxi_pos = (next_row, next_col)
             # 若已接乘客，乘客位置隨 Taxi 移動
             if self.passenger_picked_up:
-                reward += 20
                 self.passenger_loc = self.taxi_pos
 
         if action == 4:  # PICKUP
@@ -142,19 +141,19 @@ class SimpleTaxiEnv():
                 self.passenger_picked_up = True
                 self.passenger_loc = self.taxi_pos  
             else:
-                reward -= 50  # 錯誤 PICKUP 懲罰 -50
+                reward -= 500  # 錯誤 PICKUP 懲罰 -50
 
         elif action == 5:  # DROPOFF
             if self.passenger_picked_up:
                 if self.taxi_pos == self.destination:
-                    reward += 200  # 成功送達乘客獎勵 +200
+                    reward += 2000  # 成功送達乘客獎勵 +2000
                     return self.get_state(), reward, True, {}  # 遊戲結束
                 else:
-                    reward -= 20  # 錯誤 DROPOFF 懲罰 -50
+                    reward -= 500  # 錯誤 DROPOFF 懲罰 -50
                 self.passenger_picked_up = False
                 self.passenger_loc = self.taxi_pos
             else:
-                reward -= 20  # 無乘客時執行 DROPOFF 懲罰 -50
+                reward -= 500  # 無乘客時執行 DROPOFF 懲罰 -50
 
         reward -= 0.1  # 每步移動懲罰 -0.1
         self.current_fuel -= 1

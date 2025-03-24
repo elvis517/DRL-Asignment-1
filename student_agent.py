@@ -25,7 +25,7 @@ action_dim = 6
 
 # 載入訓練後的模型參數，檔名與路徑請依實際情況調整
 policy_net = DQN(state_dim, action_dim)
-policy_net.load_state_dict(torch.load("dqn_taxi_light2.pth"))
+policy_net.load_state_dict(torch.load("dqn_taxi_light128.pth"))
 policy_net.eval()
 
 def get_action(obs):

@@ -9,7 +9,7 @@ from tr_simple_custom_taxi_env import SimpleTaxiEnv
 from IPython.display import clear_output
 
 # 設定 device 為 GPU (若可用)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 print(f"Using device: {device}")
 
 class DQN(nn.Module):
@@ -17,8 +17,8 @@ class DQN(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(state_dim, 128)  # 減少神經元數量
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, action_dim)
+        self.fc2 = nn.Linear(128,  64)  # 減少神經元數量    
+        self.fc3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
         x = torch.sigmoid(self.fc1(x))
@@ -27,12 +27,12 @@ class DQN(nn.Module):
 
 # 🎯 訓練超參數（輕量版）
 GAMMA = 0.99          # 折扣因子
-LR = 2e-4             # 學習率（較高，加速收斂）
+LR = 5e-4             # 學習率（較高，加速收斂）
 EPSILON_START = 1.0   # 初始探索率
 EPSILON_END = 0.15    # 最小探索率
 EPSILON_DECAY = 0.9997 # 探索率衰減
 MEMORY_SIZE = 7500    # 記憶庫大小（減少佔用記憶體）
-BATCH_SIZE = 64       # 訓練批次大小（減少顯存需求）
+BATCH_SIZE = 32       # 訓練批次大小（減少顯存需求）
 TARGET_UPDATE = 10    # 每 10 個 episodes 更新目標網路
 EPISODES = 10000       # 訓練回合數（減少訓練時間）
 MAX_STEPS_PER_EPISODE = 10000  # 🚨 10000 步後自動結束
