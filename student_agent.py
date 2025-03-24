@@ -70,4 +70,5 @@ def get_action(obs):
         return agent.select_action(obs)
     except Exception as e:
         print(f"⚠️ 選擇動作時發生錯誤: {e}, 退回隨機行動")
-        return random.choice([0, 1, 2, 3, 4, 5])  # 退回隨機選擇
+        return random.choice([0, 1, 2, 3, 4, 5])  # 退回隨機選擇建
+    
