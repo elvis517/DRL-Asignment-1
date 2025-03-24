@@ -51,7 +51,7 @@ def get_action(obs):
 
 
 
-# import numpy as np
+import numpy as np
 # import pickle
 # import random
 
