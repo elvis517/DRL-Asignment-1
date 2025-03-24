@@ -26,17 +26,17 @@ GAMMA = 0.99          # 折扣因子
 LR = 5e-4             # 學習率（較高，加速收斂）
 EPSILON_START = 1.0   # 初始探索率
 EPSILON_END = 0.15    # 最小探索率
-EPSILON_DECAY = 0.9997 # 探索率衰減
-MEMORY_SIZE = 10000    # 記憶庫大小（減少佔用記憶體）
+EPSILON_DECAY = 0.9995 # 探索率衰減
+MEMORY_SIZE = 7500    # 記憶庫大小（減少佔用記憶體）
 BATCH_SIZE = 64       # 訓練批次大小（減少顯存需求）
 TARGET_UPDATE = 10    # 每 10 個 episodes 更新目標網路
-EPISODES = 15000       # 訓練回合數（減少訓練時間）
+EPISODES = 10000       # 訓練回合數（減少訓練時間）
 MAX_STEPS_PER_EPISODE = 10000  # 🚨 1000 步後自動結束
 REPLAY_START = 1000   # 記憶庫最少要有 1000 條資料才能訓練
 
 # 初始化環境
 env = SimpleTaxiEnv()
-state_dim = 14
+state_dim = 16  # 觀察狀態為 16 維向量
 action_dim = 6  
 
 # 創建 DQN & 目標網路
